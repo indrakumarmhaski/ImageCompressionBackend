@@ -1,0 +1,67 @@
+# Define 'Service' to expose backend application deployment
+apiVersion: v1
+kind: Service
+metadata:
+  name: imageapi-backend  
+spec:
+  selector:  # backend application pod labels should match these
+    app: imageapi
+    tier: backend
+  ports:
+  - protocol: "TCP"
+    port: 80
+    targetPort: 8000
+  type: LoadBalancer   # use NodePort, if you are not running Kubernetes on a cloud provider
+---
+# Configure 'Deployment' of backend application
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: imageapi-backend
+  labels: 
+    app: imageapi
+    tier: backend
+spec:
+  replicas: 1    # Number of replicas of the back-end application to be deployed
+  selector:
+    matchLabels: # backend application pod labels should match these
+      app: imageapi
+      tier: backend
+  template:
+    metadata:
+      labels: # Must match 'Service' and 'Deployment' labels
+        app: imageapi
+        tier: backend  
+    spec:                 
+      containers: 
+      - name: imageapi-backend
+        image: indrakumarm/imageapi:3  # Docker image of the backend application
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: AWS_ACCESS_KEY_ID # Setting USER username on mysql From a 'Secret'
+          valueFrom:
+            secretKeyRef:
+              name: aws-credentials
+              key: AWS_ACCESS_KEY_ID
+        - name: AWS_SECRET_ACCESS_KEY  
+          valueFrom:
+            secretKeyRef:
+              name: aws-credentials
+              key: AWS_SECRET_ACCESS_KEY 
+        - name: AWS_STORAGE_BUCKET_NAME  
+          valueFrom:
+            secretKeyRef:
+              name: aws-credentials
+              key: AWS_STORAGE_BUCKET_NAME
+        - name: AWS_S3_REGION_NAME
+          valueFrom:
+            secretKeyRef:
+              name: aws-credentials
+              key: AWS_S3_REGION_NAME
+        - name: AWS_DEFAULT_ACL 
+          valueFrom:
+            secretKeyRef:
+              name: aws-credentials
+              key: AWS_DEFAULT_ACL
+        ports:
+        - containerPort: 8000
