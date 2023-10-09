@@ -22,7 +22,7 @@ metadata:
     app: imageapi
     tier: backend
 spec:
-  replicas: 1    # Number of replicas of the back-end application to be deployed
+  replicas: 2    # Number of replicas of the back-end application to be deployed
   selector:
     matchLabels: # backend application pod labels should match these
       app: imageapi
